@@ -5,25 +5,59 @@ public class PlayerController : MonoBehaviour
     public float jumpForce = 14f;
     [Header("GD-Style Fall")]
     public float fallMultiplier = 3.5f;   // how much harder gravity pulls you down
+
+    [Header("GD-Style Rotation")]
+    [Tooltip("Drag the child sprite/visual object here. Leave empty to rotate the whole GameObject.")]
+    public Transform visualTransform;
+    public float rotationSpeed = 400f;    // degrees per second while airborne
+
     private Rigidbody2D rb;
     private GameManager gm;
     private bool isGrounded = true;
     private bool wasGrounded = true;
+    private bool jumpRequested = false;
+    private float targetRotationZ = 0f;   // the next 90° snap target
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         gm = FindAnyObjectByType<GameManager>();
         if (gm == null) Debug.LogWarning("PlayerController: GameManager not found in scene!");
+
+        // If no visual assigned, rotate this transform directly
+        if (visualTransform == null)
+            visualTransform = transform;
+    }
+
+    /// <summary>
+    /// Call this from a UI Button's OnClick event for mobile jump.
+    /// </summary>
+    public void Jump()
+    {
+        jumpRequested = true;
     }
 
     void Update()
     {
-        // Jump with Spacebar or Left Mouse Click
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)) && isGrounded)
+        // Jump only via the UI Button
+        if (jumpRequested && isGrounded)
         {
             rb.linearVelocity = Vector2.up * jumpForce;
             isGrounded = false;
+
+            // Set the next 90° rotation target (clockwise = negative Z)
+            targetRotationZ -= 90f;
+        }
+        jumpRequested = false;
+
+        // Smoothly rotate toward the target while airborne
+        if (!isGrounded)
+        {
+            float currentZ = visualTransform.localEulerAngles.z;
+            // Convert to signed angle for smooth Lerp
+            if (currentZ > 180f) currentZ -= 360f;
+            float newZ = Mathf.MoveTowards(currentZ, targetRotationZ, rotationSpeed * Time.deltaTime);
+            visualTransform.localEulerAngles = new Vector3(0f, 0f, newZ);
         }
     }
 
@@ -62,7 +96,8 @@ public class PlayerController : MonoBehaviour
         { 
             if (!wasGrounded && CameraShake.Instance != null)
                 CameraShake.Instance.Shake();
-            isGrounded = true; 
+            isGrounded = true;
+            SnapRotation();
         }
         
         // 2. Hitting an obstacle requires some math
@@ -82,6 +117,7 @@ public class PlayerController : MonoBehaviour
                 if (!wasGrounded && CameraShake.Instance != null)
                     CameraShake.Instance.Shake();
                 isGrounded = true; // Safe to jump again
+                SnapRotation();
             }
             // Otherwise we hit the side — game over
             else 
@@ -95,5 +131,14 @@ public class PlayerController : MonoBehaviour
         {
             if (gm != null) gm.TriggerGameOver();
         }
+    }
+
+    /// <summary>
+    /// Snap the visual to the nearest 90° on landing (just like GD).
+    /// </summary>
+    private void SnapRotation()
+    {
+        targetRotationZ = Mathf.Round(targetRotationZ / 90f) * 90f;
+        visualTransform.localEulerAngles = new Vector3(0f, 0f, targetRotationZ);
     }
 }

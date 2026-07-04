@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
 {
     public TMP_Text scoreText;
     public GameObject gameOverMenu;
+    [Tooltip("Points gained per second")]
+    public float scoreRate = 10f;
     
     private float score = 0f;
     private int displayedScore = -1; // Track last displayed score to avoid redundant text updates
@@ -23,8 +25,12 @@ public class GameManager : MonoBehaviour
     {
         if (!isGameOver)
         {
-            // Increase score over time (e.g., 10 points per second)
-            score += Time.deltaTime * 10f; 
+            // Increase score over time using configurable rate
+            score += Time.deltaTime * scoreRate; 
+
+            // Feed score to difficulty system
+            if (DifficultyManager.Instance != null)
+                DifficultyManager.Instance.UpdateDifficulty(score);
 
             // Only update the UI text when the integer score actually changes
             int currentScore = Mathf.FloorToInt(score);

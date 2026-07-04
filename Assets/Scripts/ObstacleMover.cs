@@ -7,8 +7,13 @@ public class ObstacleMover : MonoBehaviour
 
     void Update()
     {
-        // Move left at a constant speed
-        transform.Translate(Vector3.left * (speed * Time.deltaTime));
+        // Use dynamic speed from DifficultyManager (falls back to local speed)
+        float currentSpeed = DifficultyManager.Instance != null
+            ? DifficultyManager.Instance.CurrentSpeed
+            : speed;
+
+        // Move left at the current speed
+        transform.Translate(Vector3.left * (currentSpeed * Time.deltaTime));
 
         // If it goes past the player and off-screen, deactivate it
         if (transform.position.x < deadZone)

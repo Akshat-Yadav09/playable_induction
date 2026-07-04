@@ -29,8 +29,13 @@ public class ObstacleSpawner : MonoBehaviour
 
     void Update()
     {
+        // Use dynamic spawn interval from DifficultyManager (falls back to spawnRate)
+        float interval = DifficultyManager.Instance != null
+            ? DifficultyManager.Instance.CurrentSpawnInterval
+            : spawnRate;
+
         timer += Time.deltaTime;
-        if (timer >= spawnRate)
+        if (timer >= interval)
         {
             SpawnObstacle();
             timer = 0f;
