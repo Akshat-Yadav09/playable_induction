@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 103cdcb1bc224e449bd2b9e683f8722b
+guid: f1c81ac4b319fa3418c5fa7c4e8e333a
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6766568678235625650
-    second: ChatGPT Image Jul 2, 2026, 09_33_18 PM-photoaidcom-cropped_0
+      213: -8056007617649613965
+    second: quit_button-removebg-preview_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -75,7 +75,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 2
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: ChatGPT Image Jul 2, 2026, 09_33_18 PM-photoaidcom-cropped_0
+      name: quit_button-removebg-preview_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 968
-        height: 968
+        x: 58
+        y: 118
+        width: 384
+        height: 264
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 2b8d48eac5ea7ed50800000000000000
-      internalID: 6766568678235625650
+      spriteID: 373672a11cf433090800000000000000
+      internalID: -8056007617649613965
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      ChatGPT Image Jul 2, 2026, 09_33_18 PM-photoaidcom-cropped_0: 6766568678235625650
+      quit_button-removebg-preview_0: -8056007617649613965
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
