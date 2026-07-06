@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI; // Required for UI elements
 using UnityEngine.SceneManagement;
 using TMPro;
 

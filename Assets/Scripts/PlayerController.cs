@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D rb;
     private GameManager gm;
+    private PlayerTrail trail;
     private bool isGrounded = true;
     private bool wasGrounded = true;
     private bool jumpRequested = false;
@@ -23,6 +24,12 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         gm = FindAnyObjectByType<GameManager>();
         if (gm == null) Debug.LogWarning("PlayerController: GameManager not found in scene!");
+
+        trail = GetComponent<PlayerTrail>();
+
+        // Lock X so friction from obstacles can't push the player sideways.
+        // Also freeze rigidbody rotation since we handle rotation visually.
+        rb.constraints = RigidbodyConstraints2D.FreezePositionX | RigidbodyConstraints2D.FreezeRotation;
 
         // If no visual assigned, rotate this transform directly
         if (visualTransform == null)
@@ -44,6 +51,7 @@ public class PlayerController : MonoBehaviour
         {
             rb.linearVelocity = Vector2.up * jumpForce;
             isGrounded = false;
+            if (trail != null) trail.SetGrounded(false);
 
             // Set the next 90° rotation target (clockwise = negative Z)
             targetRotationZ -= 90f;
@@ -86,6 +94,7 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Obstacle"))
         {
             isGrounded = false;
+            if (trail != null) trail.SetGrounded(false);
         }
     }
 
@@ -97,6 +106,7 @@ public class PlayerController : MonoBehaviour
             if (!wasGrounded && CameraShake.Instance != null)
                 CameraShake.Instance.Shake();
             isGrounded = true;
+            if (trail != null) trail.SetGrounded(true);
             SnapRotation();
         }
         
@@ -117,6 +127,7 @@ public class PlayerController : MonoBehaviour
                 if (!wasGrounded && CameraShake.Instance != null)
                     CameraShake.Instance.Shake();
                 isGrounded = true; // Safe to jump again
+                if (trail != null) trail.SetGrounded(true);
                 SnapRotation();
             }
             // Otherwise we hit the side — game over
