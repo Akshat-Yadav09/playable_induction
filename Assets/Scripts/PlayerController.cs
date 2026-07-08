@@ -46,8 +46,11 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Jump only via the UI Button
-        if (jumpRequested && isGrounded)
+        // Allow holding spacebar, clicking/holding anywhere on screen (mobile touch), 
+        // OR using the UI button to jump.
+        bool isHoldingJump = Input.GetMouseButton(0) || Input.GetKey(KeyCode.Space) || jumpRequested;
+
+        if (isHoldingJump && isGrounded)
         {
             rb.linearVelocity = Vector2.up * jumpForce;
             isGrounded = false;
@@ -56,6 +59,8 @@ public class PlayerController : MonoBehaviour
             // Set the next 90° rotation target (clockwise = negative Z)
             targetRotationZ -= 90f;
         }
+        
+        // Reset the UI button request
         jumpRequested = false;
 
         // Smoothly rotate toward the target while airborne
