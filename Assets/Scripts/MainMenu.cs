@@ -4,13 +4,14 @@ using TMPro; // Needed for TextMeshPro UI elements
 
 public class MainMenu : MonoBehaviour
 {
-    [Tooltip("Drag the Quit Button GameObject here. It will be hidden automatically on WebGL.")]
-    public GameObject quitButton;
-
     [Tooltip("Drag your Username TMP_InputField here to save the player's name.")]
     public TMP_InputField usernameInput;
 
+    [Tooltip("Drag your RegNo TMP_InputField here to save the player's registration number.")]
+    public TMP_InputField regNoInput;
+
     private const string UsernamePrefsKey = "PlayerUsername";
+    private const string RegNoPrefsKey = "PlayerRegNo";
 
     void Start()
     {
@@ -19,24 +20,27 @@ public class MainMenu : MonoBehaviour
         {
             usernameInput.text = PlayerPrefs.GetString(UsernamePrefsKey, "");
         }
-
-        // Application.Quit() does nothing on WebGL, so hide the button entirely
-        #if UNITY_WEBGL && !UNITY_EDITOR
-        if (quitButton != null)
-            quitButton.SetActive(false);
-        #endif
+        
+        if (regNoInput != null)
+        {
+            regNoInput.text = PlayerPrefs.GetString(RegNoPrefsKey, "");
+        }
     }
 
     /// <summary>
-    /// Saves the current text from the input field into PlayerPrefs.
+    /// Saves the current text from the input fields into PlayerPrefs.
     /// </summary>
-    public void SaveUsername()
+    public void SaveUserDetails()
     {
         if (usernameInput != null)
         {
             PlayerPrefs.SetString(UsernamePrefsKey, usernameInput.text);
-            PlayerPrefs.Save();
         }
+        if (regNoInput != null)
+        {
+            PlayerPrefs.SetString(RegNoPrefsKey, regNoInput.text);
+        }
+        PlayerPrefs.Save();
     }
 
     /// <summary>
@@ -44,17 +48,14 @@ public class MainMenu : MonoBehaviour
     /// </summary>
     public void PlayGame()
     {
-        SaveUsername(); // Save the username right before starting the game
+        SaveUserDetails(); // Save details right before starting the game
+        
+        // Reset attempts and total score for the new session
+        PlayerPrefs.SetInt("Attempts", 0);
+        PlayerPrefs.SetFloat("TotalScore", 0f);
+        PlayerPrefs.Save();
+        
         Time.timeScale = 1f; // Ensure time is running
         SceneManager.LoadScene("SampleScene");
-    }
-
-    /// <summary>
-    /// Quits the application. Hook this to a Quit button's OnClick event.
-    /// </summary>
-    public void QuitGame()
-    {
-        Debug.Log("Quit requested");
-        Application.Quit();
     }
 }

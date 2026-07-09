@@ -4,7 +4,7 @@ using UnityEngine;
 public class ObstacleSpawner : MonoBehaviour
 {
     public GameObject[] obstaclePrefabs; // Drag multiple prefabs here in the Inspector
-    public int poolSizePerPrefab = 3;   // How many of each type to pre-create
+    public int poolSizePerPrefab = 5;   // How many of each type to pre-create
     public float spawnRate = 2f;
 
     [Header("Spawn Randomness")]
@@ -32,6 +32,8 @@ public class ObstacleSpawner : MonoBehaviour
         else
             calculatedSafeInterval = minSafeInterval;
 
+        Debug.Log($"ObstacleSpawner Start: calculatedSafeInterval = {calculatedSafeInterval}");
+
         // Build a separate pool for each prefab
         pools = new List<GameObject>[obstaclePrefabs.Length];
         for (int p = 0; p < obstaclePrefabs.Length; p++)
@@ -51,13 +53,20 @@ public class ObstacleSpawner : MonoBehaviour
 
     void Update()
     {
+        if (float.IsNaN(nextSpawnInterval) || float.IsInfinity(nextSpawnInterval))
+        {
+            nextSpawnInterval = spawnRate;
+        }
+        
         timer += Time.deltaTime;
+        // Debug.Log($"Spawner timer: {timer} / {nextSpawnInterval}");
         if (timer >= nextSpawnInterval)
         {
             SpawnObstacle();
             timer = 0f;
             // Pick a new random interval for the next spawn
             nextSpawnInterval = GetRandomInterval();
+            Debug.Log($"Spawned obstacle! Next interval: {nextSpawnInterval}");
         }
     }
 
@@ -87,13 +96,17 @@ public class ObstacleSpawner : MonoBehaviour
         float jumpForce = player != null ? player.jumpForce : 14f;
         float fallMult = player != null ? player.fallMultiplier : 3.5f;
         float gravity = Mathf.Abs(Physics2D.gravity.y);
+        
+        // Failsafes to prevent NaN
+        if (gravity <= 0.01f) gravity = 9.81f;
+        if (fallMult <= 0.01f) fallMult = 3.5f;
 
         // Time to reach peak: v = v0 - g*t → t_up = jumpForce / gravity
         float timeUp = jumpForce / gravity;
 
         // Fall time with multiplier (this is the bottleneck — player can't act until they land)
         float peakHeight = 0.5f * gravity * timeUp * timeUp;
-        float timeDown = Mathf.Sqrt(2f * peakHeight / (gravity * fallMult));
+        float timeDown = Mathf.Sqrt(Mathf.Max(0f, 2f * peakHeight / (gravity * fallMult)));
 
         // Player only needs: fall time + small reaction buffer to tap jump
         return timeDown + 0.15f;

@@ -11,8 +11,10 @@ public class GameManager : MonoBehaviour
     public GameObject gameOverMenu;
     [Tooltip("Drag a TextMeshPro UI element here to display the final Score on the Game Over screen.")]
     public TMP_Text gameOverScoreText;
-    [Tooltip("Drag a TextMeshPro UI element here to display the High Score on the Game Over screen.")]
-    public TMP_Text highScoreText;
+    [Tooltip("Drag a TextMeshPro UI element here to display the Average Score on the final Game Over screen.")]
+    public TMP_Text averageScoreText;
+    [Tooltip("Drag the Continue (Restart) button here to hide it after the 3rd attempt.")]
+    public GameObject continueButton;
     
     [Header("Settings")]
     [Tooltip("Points gained per second")]
@@ -22,11 +24,8 @@ public class GameManager : MonoBehaviour
     private int displayedScore = -1; // Track last displayed score to avoid redundant text updates
     private bool isGameOver = false;
 
-    private int savedHighScore = 0;
-    private bool hasPassedHighScore = false;
-    private Color originalScoreColor;
-
-    private const string HighScorePrefsKey = "HighScore";
+    private const string AttemptsPrefsKey = "Attempts";
+    private const string TotalScorePrefsKey = "TotalScore";
 
     void Start()
     {
@@ -38,11 +37,7 @@ public class GameManager : MonoBehaviour
         if (scoreText != null) 
         {
             scoreText.gameObject.SetActive(true);
-            originalScoreColor = scoreText.color; // Save the original color
         }
-
-        // Load the saved high score once at the start of the run
-        savedHighScore = PlayerPrefs.GetInt(HighScorePrefsKey, 0);
     }
 
     void Update()
@@ -61,24 +56,7 @@ public class GameManager : MonoBehaviour
             if (currentScore != displayedScore)
             {
                 displayedScore = currentScore;
-                
-                // Subway Surfers style: Check if we beat the high score during this run!
-                if (savedHighScore > 0 && currentScore > savedHighScore)
-                {
-                    if (!hasPassedHighScore)
-                    {
-                        hasPassedHighScore = true;
-                        if (scoreText != null)
-                        {
-                            scoreText.color = Color.yellow; // Make it pop visually!
-                        }
-                    }
-                    if (scoreText != null) scoreText.text = "New High Score: " + currentScore.ToString();
-                }
-                else
-                {
-                    if (scoreText != null) scoreText.text = "Score: " + currentScore.ToString();
-                }
+                if (scoreText != null) scoreText.text = "Score: " + currentScore.ToString();
             }
         }
     }
@@ -95,31 +73,45 @@ public class GameManager : MonoBehaviour
         if (scoreText != null)
         {
             scoreText.gameObject.SetActive(false);
-            scoreText.color = originalScoreColor; // Reset color for the next time we play
         }
+
+        // Get attempts and total score
+        int attempts = PlayerPrefs.GetInt(AttemptsPrefsKey, 0) + 1;
+        float totalScore = PlayerPrefs.GetFloat(TotalScorePrefsKey, 0f) + currentScore;
+        
+        PlayerPrefs.SetInt(AttemptsPrefsKey, attempts);
+        PlayerPrefs.SetFloat(TotalScorePrefsKey, totalScore);
+        PlayerPrefs.Save();
 
         // 2. Show the final Score in the center
         if (gameOverScoreText != null)
         {
-            gameOverScoreText.text = "Score: " + currentScore.ToString();
+            gameOverScoreText.text = "Attempt " + attempts + "/3 Score: " + currentScore.ToString();
         }
 
-        // 3. Handle High Score Logic and display it in the center
-        if (currentScore > savedHighScore)
+        // 3. Handle 3rd attempt logic
+        if (attempts >= 3)
         {
-            PlayerPrefs.SetInt(HighScorePrefsKey, currentScore);
-            PlayerPrefs.Save();
-            
-            if (highScoreText != null)
+            if (averageScoreText != null)
             {
-                highScoreText.text = "New High Score: " + currentScore.ToString();
+                int avgScore = Mathf.FloorToInt(totalScore / 3f);
+                averageScoreText.text = "Final Average Score: " + avgScore.ToString();
+                averageScoreText.gameObject.SetActive(true);
+            }
+            if (continueButton != null)
+            {
+                continueButton.SetActive(false); // No more continues!
             }
         }
         else
         {
-            if (highScoreText != null)
+            if (averageScoreText != null)
             {
-                highScoreText.text = "High Score: " + savedHighScore.ToString();
+                averageScoreText.gameObject.SetActive(false); // Hide average until the end
+            }
+            if (continueButton != null)
+            {
+                continueButton.SetActive(true);
             }
         }
 
@@ -131,11 +123,5 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 1f; // Explicitly restore before reload (defensive)
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-    public void GoToMainMenu()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene("MainMenu");
     }
 }

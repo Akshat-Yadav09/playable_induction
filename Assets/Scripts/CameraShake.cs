@@ -61,10 +61,10 @@ public class CameraShake : MonoBehaviour
 
             transform.localPosition = originalPosition + new Vector3(x, y, 0f);
 
-            elapsed += Time.deltaTime;
+            elapsed += Time.unscaledDeltaTime;
 
             // Fade out the magnitude over time
-            magnitude = Mathf.Lerp(magnitude, 0f, dampingSpeed * Time.deltaTime);
+            magnitude = Mathf.Lerp(magnitude, 0f, dampingSpeed * Time.unscaledDeltaTime);
 
             yield return null;
         }
