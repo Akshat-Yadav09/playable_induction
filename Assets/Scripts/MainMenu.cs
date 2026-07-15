@@ -43,11 +43,13 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    /// <summary>
-    /// Loads the gameplay scene. Hook this to the PlayGame button's OnClick event.
-    /// </summary>
     public void PlayGame()
-    {
+    {   
+        if(usernameInput.text == "" || regNoInput.text == "")
+        {
+            Debug.Log("Please enter your details");
+            return;
+        }
         SaveUserDetails(); // Save details right before starting the game
         
         // Reset attempts and total score for the new session
@@ -55,7 +57,29 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.SetFloat("TotalScore", 0f);
         PlayerPrefs.Save();
         
-        Time.timeScale = 1f; // Ensure time is running
-        SceneManager.LoadScene("SampleScene");
+        // Ensure APIManager exists
+        if (APIManager.Instance == null)
+        {
+            GameObject apiObj = new GameObject("APIManager");
+            apiObj.AddComponent<APIManager>();
+        }
+
+        Debug.Log("Logging in to server...");
+        
+        // Disable play button here if needed
+        APIManager.Instance.RegisterUser(usernameInput.text, regNoInput.text, (success, message) =>
+        {
+            if (success)
+            {
+                Debug.Log(message);
+                Time.timeScale = 1f; // Ensure time is running
+                SceneManager.LoadScene("SampleScene");
+            }
+            else
+            {
+                Debug.LogError("Failed to login: " + message);
+                // Optionally show error to user in UI
+            }
+        });
     }
 }

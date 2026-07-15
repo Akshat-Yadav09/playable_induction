@@ -1830,7 +1830,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
   usernameInput: {fileID: 1503015774}
-  regNoInput: {fileID: 0}
+  regNoInput: {fileID: 453681088}
 --- !u!4 &1604962702
 Transform:
   m_ObjectHideFlags: 0

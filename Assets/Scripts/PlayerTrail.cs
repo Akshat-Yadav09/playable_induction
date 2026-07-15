@@ -109,4 +109,15 @@ public class PlayerTrail : MonoBehaviour
         // Start playing
         trailParticles.Play();
     }
+
+    /// <summary>
+    /// Clears the trail particles instantly, used on death.
+    /// </summary>
+    public void ClearOnDeath()
+    {
+        if (trailParticles != null)
+        {
+            trailParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+    }
 }

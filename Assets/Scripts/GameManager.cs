@@ -38,6 +38,8 @@ public class GameManager : MonoBehaviour
         {
             scoreText.gameObject.SetActive(true);
         }
+
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayGameplayMusic();
     }
 
     void Update()
@@ -66,6 +68,8 @@ public class GameManager : MonoBehaviour
         if (isGameOver) return; // Prevent double-triggering
         
         isGameOver = true;
+
+        if (SoundManager.Instance != null) SoundManager.Instance.PlayDeathSound();
         
         int currentScore = Mathf.FloorToInt(score);
 
@@ -81,6 +85,7 @@ public class GameManager : MonoBehaviour
         
         PlayerPrefs.SetInt(AttemptsPrefsKey, attempts);
         PlayerPrefs.SetFloat(TotalScorePrefsKey, totalScore);
+        PlayerPrefs.SetInt("Score_Attempt_" + attempts, currentScore);
         PlayerPrefs.Save();
 
         // 2. Show the final Score in the center
@@ -92,26 +97,43 @@ public class GameManager : MonoBehaviour
         // 3. Handle 3rd attempt logic
         if (attempts >= 3)
         {
+            int avgScore = Mathf.FloorToInt(totalScore / 3f);
+
+            // Submit to Backend API
+            if (APIManager.Instance != null)
+            {
+                Debug.Log("Submitting average score to server: " + avgScore);
+                APIManager.Instance.SubmitScore(avgScore, (success, message) => 
+                {
+                    if (success) Debug.Log("API: " + message);
+                    else Debug.LogError("API Error: " + message);
+                });
+            }
+
             if (averageScoreText != null)
             {
-                int avgScore = Mathf.FloorToInt(totalScore / 3f);
-                averageScoreText.text = "Final Average Score: " + avgScore.ToString();
+                averageScoreText.text = "Attempt 3/3 Score: " + currentScore.ToString() + "\nFinal Average Score: " + avgScore.ToString() + "\n\n<color=red>This was your last attempt!</color>";
                 averageScoreText.gameObject.SetActive(true);
             }
             if (continueButton != null)
             {
-                continueButton.SetActive(false); // No more continues!
+                continueButton.SetActive(true); // Keep active for leaderboard transition
+                TMP_Text btnText = continueButton.GetComponentInChildren<TMP_Text>();
+                if (btnText != null) btnText.text = "Leaderboards";
             }
         }
         else
         {
             if (averageScoreText != null)
             {
-                averageScoreText.gameObject.SetActive(false); // Hide average until the end
+                averageScoreText.text = "Attempt " + attempts + "/3 Score: " + currentScore.ToString();
+                averageScoreText.gameObject.SetActive(true); // Show score for attempt 1 and 2
             }
             if (continueButton != null)
             {
                 continueButton.SetActive(true);
+                TMP_Text btnText = continueButton.GetComponentInChildren<TMP_Text>();
+                if (btnText != null) btnText.text = "Continue";
             }
         }
 
@@ -122,6 +144,15 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1f; // Explicitly restore before reload (defensive)
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        
+        int attempts = PlayerPrefs.GetInt(AttemptsPrefsKey, 0);
+        if (attempts >= 3)
+        {
+            SceneManager.LoadScene("LeaderboardScene");
+        }
+        else
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 }
