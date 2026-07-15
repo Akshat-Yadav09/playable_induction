@@ -15,10 +15,10 @@ public class ObstacleMover : MonoBehaviour
         // Move left at the current speed
         transform.Translate(Vector3.left * (currentSpeed * Time.deltaTime));
 
-        // If it goes past the player and off-screen, deactivate it
+        // If it goes past the player and off-screen, destroy it
         if (transform.position.x < deadZone)
         {
-            gameObject.SetActive(false);
+            Destroy(gameObject);
         }
     }
 }

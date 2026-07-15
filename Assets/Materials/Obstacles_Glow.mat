@@ -43,7 +43,7 @@ Material:
     m_Floats:
     - _ColorMask: 15
     - _EnableExternalAlpha: 0
-    - _GlowPower: 1
+    - _GlowPower: 0.5
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0
@@ -53,7 +53,7 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _GlowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _GlowColor: {r: 1.591073, g: 1.591073, b: 1.591073, a: 1}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

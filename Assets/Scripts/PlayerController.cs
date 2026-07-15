@@ -123,13 +123,10 @@ public class PlayerController : MonoBehaviour
         if (collisionGraceTimer > 0f)
             collisionGraceTimer -= Time.deltaTime;
 
-        // Don't jump if we are clicking on a UI button
-        bool clickingUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-        bool isClicking = Input.GetMouseButton(0) && !clickingUI;
-        
-        bool isHoldingJump = isClicking || Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W) || jumpRequested || isHoldingUIJump;
+        // Only allow jump via UI button or explicit Jump() call
+        bool shouldJump = isHoldingUIJump || jumpRequested;
 
-        if (isHoldingJump && isGrounded)
+        if (shouldJump && isGrounded)
         {
             rb.linearVelocity = Vector2.up * jumpForce;
             isGrounded = false;
@@ -210,8 +207,11 @@ public class PlayerController : MonoBehaviour
         // 1. Hitting the ground is always safe
         if (collision.gameObject.CompareTag("Ground")) 
         { 
-            if (!wasGrounded && CameraShake.Instance != null)
-                CameraShake.Instance.Shake();
+            if (!wasGrounded)
+            {
+                if (CameraShake.Instance != null) CameraShake.Instance.Shake();
+                PlayLandingSplash();
+            }
             isGrounded = true;
             if (trail != null) trail.SetGrounded(true);
             SnapRotation();
@@ -225,23 +225,34 @@ public class PlayerController : MonoBehaviour
         // 3. Hitting ANYTHING ELSE (Obstacles)
         else 
         { 
+            Collider2D playerCol = GetComponent<Collider2D>();
+            float playerBottom = playerCol != null ? playerCol.bounds.min.y : transform.position.y;
+            float obsTop = collision.collider.bounds.max.y;
+
+            // --- GHOST COLLISION SEAM FIX ---
+            // If the player hits the vertical seam between two blocks while already sliding, 
+            // the hit point will be near their feet. We ignore it.
+            if (isGrounded && playerBottom >= obsTop - 0.15f)
+            {
+                return;
+            }
+
             float maxNormalY = float.MinValue;
             for (int i = 0; i < collision.contactCount; i++)
             {
                 maxNormalY = Mathf.Max(maxNormalY, collision.GetContact(i).normal.y);
             }
 
-            Collider2D playerCol = GetComponent<Collider2D>();
-            float playerBottom = playerCol != null ? playerCol.bounds.min.y : transform.position.y;
-            float obsTop = collision.collider.bounds.max.y;
-
             // STRICTER CHECK
             bool isSafelyOnTop = maxNormalY > 0.5f && (playerBottom >= obsTop - 0.2f);
 
             if (isSafelyOnTop) 
             {
-                if (!wasGrounded && CameraShake.Instance != null)
-                    CameraShake.Instance.Shake();
+                if (!wasGrounded)
+                {
+                    if (CameraShake.Instance != null) CameraShake.Instance.Shake();
+                    PlayLandingSplash();
+                }
                 isGrounded = true; 
                 if (trail != null) trail.SetGrounded(true);
                 SnapRotation();
@@ -289,5 +300,83 @@ public class PlayerController : MonoBehaviour
         float timeDown = Mathf.Sqrt(Mathf.Max(0f, 2f * peakHeight / effectiveGravityDown));
 
         return timeUp + timeDown;
+    }
+
+    private void PlayLandingSplash()
+    {
+        // Burst of 4-6 small particles at the bottom
+        int particleCount = Random.Range(4, 7);
+        Collider2D playerCol = GetComponent<Collider2D>();
+        Vector2 bottomCenter = playerCol != null ? new Vector2(transform.position.x, playerCol.bounds.min.y) : (Vector2)transform.position;
+
+        for (int i = 0; i < particleCount; i++)
+        {
+            GameObject p = new GameObject("LandingParticle");
+            p.transform.position = bottomCenter + new Vector2(Random.Range(-0.2f, 0.2f), Random.Range(0f, 0.1f));
+            
+            SpriteRenderer sr = p.AddComponent<SpriteRenderer>();
+            sr.sprite = GetOrCreateSquareSprite();
+            
+            // Inherit player color
+            SpriteRenderer playerSR = visualTransform != null ? visualTransform.GetComponent<SpriteRenderer>() : null;
+            if (playerSR == null) playerSR = GetComponent<SpriteRenderer>();
+            sr.color = playerSR != null ? playerSR.color : Color.white;
+            sr.sortingOrder = 5;
+
+            p.transform.localScale = Vector3.one * Random.Range(0.1f, 0.2f);
+
+            // Velocity mostly outward (left/right) and slightly up
+            float sign = Random.value > 0.5f ? 1f : -1f;
+            Vector2 vel = new Vector2(Random.Range(2f, 5f) * sign, Random.Range(0.5f, 2.5f));
+            
+            StartCoroutine(AnimateLandingParticle(p, vel));
+        }
+    }
+
+    private System.Collections.IEnumerator AnimateLandingParticle(GameObject obj, Vector2 velocity)
+    {
+        if (obj == null) yield break;
+        SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
+        Color startColor = sr != null ? sr.color : Color.white;
+        float duration = Random.Range(0.2f, 0.35f);
+        float elapsed = 0f;
+
+        while (elapsed < duration && obj != null)
+        {
+            elapsed += Time.deltaTime;
+            obj.transform.position += (Vector3)(velocity * Time.deltaTime);
+            
+            // apply slight gravity
+            velocity.y -= 12f * Time.deltaTime;
+            
+            if (sr != null)
+            {
+                float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
+                sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
+            }
+            
+            yield return null;
+        }
+
+        if (obj != null) Destroy(obj);
+    }
+
+    private Sprite _squareSprite;
+    private Sprite GetOrCreateSquareSprite()
+    {
+        SpriteRenderer playerSR = visualTransform != null ? visualTransform.GetComponent<SpriteRenderer>() : null;
+        if (playerSR == null) playerSR = GetComponent<SpriteRenderer>();
+        if (playerSR != null && playerSR.sprite != null) return playerSR.sprite;
+
+        if (_squareSprite == null)
+        {
+            Texture2D tex = new Texture2D(4, 4);
+            Color[] pixels = new Color[16];
+            for (int i = 0; i < pixels.Length; i++) pixels[i] = Color.white;
+            tex.SetPixels(pixels);
+            tex.Apply();
+            _squareSprite = Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4f);
+        }
+        return _squareSprite;
     }
 }

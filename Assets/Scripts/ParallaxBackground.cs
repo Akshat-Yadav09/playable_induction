@@ -25,10 +25,10 @@ public class ParallaxBackground : MonoBehaviour
         clone.transform.localPosition = new Vector3(length / transform.localScale.x, 0, 0); 
         clone.transform.localScale = Vector3.one;
         
-        // Copy the visual properties
         SpriteRenderer cloneSr = clone.AddComponent<SpriteRenderer>();
         cloneSr.sprite = sr.sprite;
         cloneSr.color = sr.color;
+        cloneSr.sharedMaterial = sr.sharedMaterial; // <--- COPY THE MATERIAL SO IT GLOWS!
         cloneSr.sortingLayerID = sr.sortingLayerID;
         cloneSr.sortingOrder = sr.sortingOrder;
     }
