@@ -129,7 +129,7 @@ public class APIManager : MonoBehaviour
             yield break;
         }
 
-        string url = BASE_URL + "/score/submit";
+        string url = BASE_URL + "/score/submit-score";
         
         ScoreRequest requestData = new ScoreRequest { score = score };
         string json = JsonUtility.ToJson(requestData);

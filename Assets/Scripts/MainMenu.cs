@@ -10,6 +10,9 @@ public class MainMenu : MonoBehaviour
     [Tooltip("Drag your RegNo TMP_InputField here to save the player's registration number.")]
     public TMP_InputField regNoInput;
 
+    [Tooltip("Drag a TextMeshPro UI element here to display error messages.")]
+    public TMP_Text errorText;
+
     private const string UsernamePrefsKey = "PlayerUsername";
     private const string RegNoPrefsKey = "PlayerRegNo";
 
@@ -45,9 +48,18 @@ public class MainMenu : MonoBehaviour
 
     public void PlayGame()
     {   
+        if (errorText != null) errorText.text = ""; // Clear previous errors
+
         if(usernameInput.text == "" || regNoInput.text == "")
         {
-            Debug.Log("Please enter your details");
+            if (errorText != null) errorText.text = "Please enter your details";
+            return;
+        }
+
+        // Validate registration number: must be between 200000 and 270000
+        if (!int.TryParse(regNoInput.text, out int regNo) || regNo < 200000 || regNo > 270000)
+        {
+            if (errorText != null) errorText.text = "Please enter a valid registration number";
             return;
         }
         SaveUserDetails(); // Save details right before starting the game
@@ -77,8 +89,8 @@ public class MainMenu : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Failed to login: " + message);
-                // Optionally show error to user in UI
+                Debug.LogWarning("Failed to login: " + message);
+                if (errorText != null) errorText.text = "Please enter a valid registration number";
             }
         });
     }

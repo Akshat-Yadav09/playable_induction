@@ -43,8 +43,21 @@ public class ObstacleSpawner : MonoBehaviour
     private float totalPatternWeight;
     private int lastSpawnedPatternIndex = -1;
 
+    [Header("Screen Positioning")]
+    [Tooltip("If true, automatically places the spawner just outside the right edge of the screen.")]
+    public bool autoPositionX = true;
+    [Tooltip("Extra distance past the right edge in world units.")]
+    public float paddingFromRightEdge = 2f;
+
     void Start()
     {
+        // Dynamically adjust spawner X position based on aspect ratio
+        if (autoPositionX && Camera.main != null)
+        {
+            float rightEdgeX = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, 0)).x;
+            transform.position = new Vector3(rightEdgeX + paddingFromRightEdge, transform.position.y, transform.position.z);
+        }
+
         // Calculate the player's jump duration from physics so we know the
         // minimum gap needed between obstacles for the player to land + jump again.
         if (minSafeInterval <= 0f)
@@ -81,7 +94,7 @@ public class ObstacleSpawner : MonoBehaviour
             timer = 0f;
             // Pick a new random interval for the next spawn
             nextSpawnInterval = GetRandomInterval();
-            Debug.Log($"Spawned obstacle! Next interval: {nextSpawnInterval}");
+            // Debug.Log($"Spawned obstacle! Next interval: {nextSpawnInterval}");
         }
     }
 

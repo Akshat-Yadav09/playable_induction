@@ -99,8 +99,8 @@ public class GameManager : MonoBehaviour
         {
             int avgScore = Mathf.FloorToInt(totalScore / 3f);
 
-            // Submit to Backend API
-            if (APIManager.Instance != null)
+            // Only submit on exactly the 3rd attempt
+            if (attempts == 3 && APIManager.Instance != null)
             {
                 Debug.Log("Submitting average score to server: " + avgScore);
                 APIManager.Instance.SubmitScore(avgScore, (success, message) => 
@@ -112,14 +112,14 @@ public class GameManager : MonoBehaviour
 
             if (averageScoreText != null)
             {
-                averageScoreText.text = "Attempt 3/3 Score: " + currentScore.ToString() + "\nFinal Average Score: " + avgScore.ToString() + "\n\n<color=red>This was your last attempt!</color>";
+                averageScoreText.text = "Attempt 3/3 Score: " + currentScore.ToString() + "\nFinal Average Score: " + avgScore.ToString() + "\n\n<color=red>Disclaimer: Further scores are not counted. You can continue if you want to.</color>";
                 averageScoreText.gameObject.SetActive(true);
             }
             if (continueButton != null)
             {
-                continueButton.SetActive(true); // Keep active for leaderboard transition
+                continueButton.SetActive(true);
                 TMP_Text btnText = continueButton.GetComponentInChildren<TMP_Text>();
-                if (btnText != null) btnText.text = "Leaderboards";
+                if (btnText != null) btnText.text = "RESTART";
             }
         }
         else
@@ -133,7 +133,7 @@ public class GameManager : MonoBehaviour
             {
                 continueButton.SetActive(true);
                 TMP_Text btnText = continueButton.GetComponentInChildren<TMP_Text>();
-                if (btnText != null) btnText.text = "Continue";
+                if (btnText != null) btnText.text = "RESTART";
             }
         }
 
@@ -145,14 +145,7 @@ public class GameManager : MonoBehaviour
     {
         Time.timeScale = 1f; // Explicitly restore before reload (defensive)
         
-        int attempts = PlayerPrefs.GetInt(AttemptsPrefsKey, 0);
-        if (attempts >= 3)
-        {
-            SceneManager.LoadScene("LeaderboardScene");
-        }
-        else
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
+        // Just reload the current scene to restart, regardless of attempts
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

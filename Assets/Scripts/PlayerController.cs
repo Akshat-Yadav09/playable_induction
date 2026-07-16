@@ -76,6 +76,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    [Header("Screen Positioning")]
+    [Tooltip("If true, automatically places the player at a safe distance from the left edge of the screen.")]
+    public bool autoPositionX = true;
+    [Tooltip("Distance from the left edge in world units.")]
+    public float distanceFromLeftEdge = 2.5f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -84,6 +90,13 @@ public class PlayerController : MonoBehaviour
 
         trail = GetComponent<PlayerTrail>();
         explosion = GetComponent<PlayerExplosion>();
+
+        // Dynamically adjust player X position based on aspect ratio
+        if (autoPositionX && Camera.main != null)
+        {
+            float leftEdgeX = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, 0)).x;
+            transform.position = new Vector3(leftEdgeX + distanceFromLeftEdge, transform.position.y, transform.position.z);
+        }
 
         // Lock X so friction from obstacles can't push the player sideways.
         // Also freeze rigidbody rotation since we handle rotation visually.
