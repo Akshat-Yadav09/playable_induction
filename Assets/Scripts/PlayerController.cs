@@ -141,6 +141,8 @@ public class PlayerController : MonoBehaviour
 
         if (shouldJump && isGrounded)
         {
+            VibrationManager.Vibrate(30); // Tiny haptic tick on jump
+            
             rb.linearVelocity = Vector2.up * jumpForce;
             isGrounded = false;
             if (trail != null) trail.SetGrounded(false);
@@ -154,10 +156,11 @@ public class PlayerController : MonoBehaviour
         jumpRequested = false;
 
         // Smoothly rotate toward the target while airborne (speed synced to jump arc)
-        if (!isGrounded)
+        if (!isGrounded && visualTransform != null)
         {
             currentRotationZ = Mathf.MoveTowards(currentRotationZ, targetRotationZ, dynamicRotationSpeed * Time.deltaTime);
-            visualTransform.localEulerAngles = new Vector3(0f, 0f, currentRotationZ);
+            Vector3 currentEuler = visualTransform.localEulerAngles;
+            visualTransform.localEulerAngles = new Vector3(currentEuler.x, currentEuler.y, currentRotationZ);
         }
     }
 
@@ -291,7 +294,12 @@ public class PlayerController : MonoBehaviour
         // Normalize
         targetRotationZ = targetRotationZ % 360f;
         currentRotationZ = targetRotationZ;
-        visualTransform.localEulerAngles = new Vector3(0f, 0f, targetRotationZ);
+        
+        if (visualTransform != null)
+        {
+            Vector3 currentEuler = visualTransform.localEulerAngles;
+            visualTransform.localEulerAngles = new Vector3(currentEuler.x, currentEuler.y, targetRotationZ);
+        }
 
         collisionGraceTimer = COLLISION_GRACE_DURATION;
     }
@@ -315,64 +323,64 @@ public class PlayerController : MonoBehaviour
         return timeUp + timeDown;
     }
 
+    private ParticleSystem landingParticles;
+
     private void PlayLandingSplash()
     {
-        // Burst of 4-6 small particles at the bottom
-        int particleCount = Random.Range(4, 7);
-        Collider2D playerCol = GetComponent<Collider2D>();
-        Vector2 bottomCenter = playerCol != null ? new Vector2(transform.position.x, playerCol.bounds.min.y) : (Vector2)transform.position;
-
-        for (int i = 0; i < particleCount; i++)
+        if (landingParticles == null)
         {
-            GameObject p = new GameObject("LandingParticle");
-            p.transform.position = bottomCenter + new Vector2(Random.Range(-0.2f, 0.2f), Random.Range(0f, 0.1f));
-            
-            SpriteRenderer sr = p.AddComponent<SpriteRenderer>();
-            sr.sprite = GetOrCreateSquareSprite();
-            
-            // Inherit player color
-            SpriteRenderer playerSR = visualTransform != null ? visualTransform.GetComponent<SpriteRenderer>() : null;
-            if (playerSR == null) playerSR = GetComponent<SpriteRenderer>();
-            sr.color = playerSR != null ? playerSR.color : Color.white;
-            sr.sortingOrder = 5;
+            GameObject pObj = new GameObject("LandingParticleSystem");
+            pObj.transform.SetParent(transform, false);
+            // Position at the bottom of the player
+            Collider2D col = GetComponent<Collider2D>();
+            float bottomY = col != null ? col.bounds.min.y - transform.position.y : -0.5f;
+            pObj.transform.localPosition = new Vector3(0, bottomY, 0);
 
-            p.transform.localScale = Vector3.one * Random.Range(0.1f, 0.2f);
+            landingParticles = pObj.AddComponent<ParticleSystem>();
+            landingParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
-            // Velocity mostly outward (left/right) and slightly up
-            float sign = Random.value > 0.5f ? 1f : -1f;
-            Vector2 vel = new Vector2(Random.Range(2f, 5f) * sign, Random.Range(0.5f, 2.5f));
-            
-            StartCoroutine(AnimateLandingParticle(p, vel));
-        }
-    }
+            var main = landingParticles.main;
+            main.duration = 1f;
+            main.loop = false;
+            main.playOnAwake = false;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.2f, 0.35f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(2f, 5f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.1f, 0.2f);
+            main.gravityModifier = 1.5f; // Pull them down
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
 
-    private System.Collections.IEnumerator AnimateLandingParticle(GameObject obj, Vector2 velocity)
-    {
-        if (obj == null) yield break;
-        SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
-        Color startColor = sr != null ? sr.color : Color.white;
-        float duration = Random.Range(0.2f, 0.35f);
-        float elapsed = 0f;
+            var emission = landingParticles.emission;
+            emission.rateOverTime = 0; // Only burst manually
 
-        while (elapsed < duration && obj != null)
-        {
-            elapsed += Time.deltaTime;
-            obj.transform.position += (Vector3)(velocity * Time.deltaTime);
-            
-            // apply slight gravity
-            velocity.y -= 12f * Time.deltaTime;
-            
-            if (sr != null)
-            {
-                float alpha = Mathf.Lerp(1f, 0f, elapsed / duration);
-                sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
-            }
-            
-            yield return null;
+            var shape = landingParticles.shape;
+            shape.shapeType = ParticleSystemShapeType.Rectangle;
+            shape.scale = new Vector3(0.5f, 0.1f, 1f);
+            shape.rotation = new Vector3(-90f, 0f, 0f); // Point upwards so they shoot up and fall
+
+            var colorOverLife = landingParticles.colorOverLifetime;
+            colorOverLife.enabled = true;
+            Gradient grad = new Gradient();
+            grad.SetKeys(
+                new GradientColorKey[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new GradientAlphaKey[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(0f, 1f) }
+            );
+            colorOverLife.color = grad;
+
+            var renderer = landingParticles.GetComponent<ParticleSystemRenderer>();
+            // Use default material to avoid WebGL shader stripping
         }
 
-        if (obj != null) Destroy(obj);
+        // Inherit player color dynamically
+        SpriteRenderer playerSR = visualTransform != null ? visualTransform.GetComponent<SpriteRenderer>() : null;
+        if (playerSR == null) playerSR = GetComponent<SpriteRenderer>();
+        Color playerColor = playerSR != null ? playerSR.color : Color.white;
+
+        var mainModule = landingParticles.main;
+        mainModule.startColor = playerColor;
+
+        landingParticles.Emit(Random.Range(4, 7));
     }
+
 
     private Sprite _squareSprite;
     private Sprite GetOrCreateSquareSprite()

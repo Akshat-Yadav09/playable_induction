@@ -32,7 +32,7 @@ public class CameraShake : MonoBehaviour
     }
 
     /// <summary>
-    /// Trigger a camera shake with the default settings.
+    /// Trigger a camera shake with the default settings and vibrate.
     /// </summary>
     public void Shake()
     {
@@ -40,10 +40,12 @@ public class CameraShake : MonoBehaviour
     }
 
     /// <summary>
-    /// Trigger a camera shake with custom duration and magnitude.
+    /// Trigger a camera shake with custom duration and magnitude and vibrate.
     /// </summary>
     public void Shake(float duration, float magnitude)
     {
+        VibrationManager.Vibrate(40); // 40ms tiny haptic tick on landing
+
         if (shakeCoroutine != null)
             StopCoroutine(shakeCoroutine);
 

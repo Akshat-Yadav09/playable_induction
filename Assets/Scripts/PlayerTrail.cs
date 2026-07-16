@@ -100,11 +100,9 @@ public class PlayerTrail : MonoBehaviour
         var emissionModule = trailParticles.emission;
         emissionModule.rateOverTime = groundEmissionRate;
 
-        // Renderer — use default sprite with additive blending for glow
+        // Renderer - use default material to avoid WebGL Shader stripping crashes.
+        // We already set main.startColor = trailColor; which is sufficient for coloring.
         var renderer = trailParticles.GetComponent<ParticleSystemRenderer>();
-        renderer.material = new Material(Shader.Find("Particles/Standard Unlit"));
-        renderer.material.SetFloat("_Mode", 1); // Additive
-        renderer.material.color = trailColor;
 
         // Start playing
         trailParticles.Play();

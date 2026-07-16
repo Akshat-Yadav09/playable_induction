@@ -17,8 +17,11 @@ public class MenuCubeRotation : MonoBehaviour
 
         // Auto-fix: If you reused the Player prefab for the menu, its physics and scripts will fight the menu rotation.
         // We strip them out here so it spins freely!
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        if (rb != null) Destroy(rb);
+        Rigidbody2D rb2d = GetComponent<Rigidbody2D>();
+        if (rb2d != null) Destroy(rb2d);
+
+        Rigidbody rb3d = GetComponent<Rigidbody>();
+        if (rb3d != null) Destroy(rb3d);
         
         PlayerController pc = GetComponent<PlayerController>();
         if (pc != null) Destroy(pc);

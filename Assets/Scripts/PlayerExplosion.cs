@@ -42,6 +42,8 @@ public class PlayerExplosion : MonoBehaviour
         if (spriteRenderer != null) spriteRenderer.enabled = false;
         if (col != null) col.enabled = false;
 
+        VibrationManager.Vibrate(200); // Heavy 200ms vibration on death
+
         // Spawn fragments
         for (int i = 0; i < fragmentCount; i++)
         {
