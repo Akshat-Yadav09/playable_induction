@@ -97,16 +97,16 @@ public class GameManager : MonoBehaviour
         // 2. Show the final Score in the center
         if (gameOverScoreText != null)
         {
-            gameOverScoreText.text = "Attempt " + attempts + "/3 Score: " + currentScore.ToString();
+            gameOverScoreText.text = "Attempt " + attempts + "/5 Score: " + currentScore.ToString();
         }
 
-        // 3. Handle 3rd attempt logic
-        if (attempts >= 3)
+        // 3. Handle 5th attempt logic
+        if (attempts >= 5)
         {
-            int avgScore = Mathf.FloorToInt(totalScore / 3f);
+            int avgScore = Mathf.FloorToInt(totalScore / 5f);
 
-            // Only submit on exactly the 3rd attempt
-            if (attempts == 3 && APIManager.Instance != null)
+            // Only submit on exactly the 5th attempt
+            if (attempts == 5 && APIManager.Instance != null)
             {
                 Debug.Log("Submitting average score to server: " + avgScore);
                 APIManager.Instance.SubmitScore(avgScore, (success, message) => 
@@ -118,7 +118,7 @@ public class GameManager : MonoBehaviour
 
             if (averageScoreText != null)
             {
-                averageScoreText.text = "Attempt 3/3 Score: " + currentScore.ToString() + "\nFinal Average Score: " + avgScore.ToString() + "\n\n<color=red>Disclaimer: Further scores are not counted. You can continue if you want to.</color>";
+                averageScoreText.text = "Attempt 5/5 Score: " + currentScore.ToString() + "\nFinal Average Score: " + avgScore.ToString() + "\n\n<color=red>Disclaimer: Further scores are not counted. You can continue if you want to.</color>";
                 averageScoreText.gameObject.SetActive(true);
             }
             if (continueButton != null)
@@ -132,8 +132,8 @@ public class GameManager : MonoBehaviour
         {
             if (averageScoreText != null)
             {
-                averageScoreText.text = "Attempt " + attempts + "/3 Score: " + currentScore.ToString();
-                averageScoreText.gameObject.SetActive(true); // Show score for attempt 1 and 2
+                averageScoreText.text = "Attempt " + attempts + "/5 Score: " + currentScore.ToString();
+                averageScoreText.gameObject.SetActive(true); // Show score for attempt 1 to 4
             }
             if (continueButton != null)
             {

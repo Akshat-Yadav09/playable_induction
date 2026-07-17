@@ -26,6 +26,7 @@ public class MainMenu : MonoBehaviour
         
         if (regNoInput != null)
         {
+            regNoInput.contentType = TMP_InputField.ContentType.IntegerNumber;
             regNoInput.text = PlayerPrefs.GetString(RegNoPrefsKey, "");
         }
     }
@@ -59,9 +60,8 @@ public class MainMenu : MonoBehaviour
             if (errorText != null) errorText.text = "Please enter your details";
             return;
         }
-
-        // Validate registration number: must be between 200000 and 270000
-        if (!int.TryParse(regNoInput.text, out int regNo) || regNo < 200000 || regNo > 270000)
+        
+        if (!int.TryParse(regNoInput.text, out int regNo))
         {
             if (errorText != null) errorText.text = "Please enter a valid registration number";
             return;

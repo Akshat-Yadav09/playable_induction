@@ -1,4 +1,4 @@
-using UnityEngine;
+ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
@@ -16,37 +16,74 @@ public class VirtualKeyboard : MonoBehaviour
     [Tooltip("Create ONE button inside the container, style it, and drag it here. The script will duplicate it.")]
     public GameObject buttonTemplate;
 
-    [Tooltip("The layout of your keys.")]
-    public string layout = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    [Tooltip("The layout of your full keyboard.")]
+    public string fullLayout = "1234567890QWERTYUIOPASDFGHJKLZXCVBNM";
 
-    private bool hasGenerated = false;
+    [Tooltip("The layout for number-only inputs.")]
+    public string numPadLayout = "1234567890";
 
     void Awake()
     {
-        if (keyboardContainer != null && buttonTemplate != null && !hasGenerated)
-        {
-            GenerateKeyboard();
-        }
+        // We will generate the keyboard dynamically when it's opened.
     }
 
-    private void GenerateKeyboard()
+    private void GenerateKeyboard(string currentLayout, bool isNumPad)
     {
-        hasGenerated = true;
+        // Clear existing keys
+        foreach (Transform child in keyboardContainer)
+        {
+            if (child.gameObject != buttonTemplate)
+            {
+                Destroy(child.gameObject);
+            }
+        }
 
         // Hide the template button so it doesn't show up in the grid directly
         buttonTemplate.SetActive(false);
 
-        // Generate standard keys
-        foreach (char c in layout)
+        if (isNumPad)
         {
-            string keyChar = c.ToString();
-            CreateKey(keyChar, () => TypeCharacter(keyChar));
+            // Dial pad layout: 1-9
+            foreach (char c in "123456789")
+            {
+                string keyChar = c.ToString();
+                CreateKey(keyChar, () => TypeCharacter(keyChar));
+            }
+            
+            // Bottom row for dial pad: DEL, 0, DONE
+            CreateKey("DEL", Backspace);
+            CreateKey("0", () => TypeCharacter("0"));
+            CreateKey("DONE", CloseKeyboard);
+        }
+        else
+        {
+            // Generate standard keys
+            foreach (char c in currentLayout)
+            {
+                string keyChar = c.ToString();
+                CreateKey(keyChar, () => TypeCharacter(keyChar));
+            }
+
+            // Generate special keys
+            CreateKey("DEL", Backspace);
+            CreateKey("SPACE", () => TypeCharacter(" "));
+            CreateKey("DONE", CloseKeyboard);
         }
 
-        // Generate special keys
-        CreateKey("DEL", Backspace);
-        CreateKey("SPACE", () => TypeCharacter(" "));
-        CreateKey("DONE", CloseKeyboard); // Added a Done button to close it!
+        // Adjust layout grid constraints
+        GridLayoutGroup grid = keyboardContainer.GetComponent<GridLayoutGroup>();
+        if (grid != null)
+        {
+            if (isNumPad)
+            {
+                grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                grid.constraintCount = 3;
+            }
+            else
+            {
+                grid.constraint = GridLayoutGroup.Constraint.Flexible;
+            }
+        }
     }
 
     private void CreateKey(string text, UnityEngine.Events.UnityAction action)
@@ -71,10 +108,32 @@ public class VirtualKeyboard : MonoBehaviour
         Button btn = newBtnObj.GetComponent<Button>();
         if (btn != null)
         {
-            btn.onClick.AddListener(action);
+            Color originalColor = btn.targetGraphic != null ? btn.targetGraphic.color : Color.white;
+
+            btn.onClick.AddListener(() => {
+                if (gameObject.activeInHierarchy)
+                {
+                    StartCoroutine(FlashButton(btn, originalColor));
+                }
+                action();
+            });
             
             // Optional haptic feedback when pressing a key
             btn.onClick.AddListener(() => VibrationManager.Vibrate(20));
+        }
+    }
+
+    private System.Collections.IEnumerator FlashButton(Button btn, Color originalColor)
+    {
+        if (btn == null || btn.targetGraphic == null) yield break;
+        
+        btn.targetGraphic.color = Color.yellow;
+        
+        yield return new WaitForSeconds(0.2f);
+        
+        if (btn != null && btn.targetGraphic != null)
+        {
+            btn.targetGraphic.color = originalColor;
         }
     }
 
@@ -105,6 +164,14 @@ public class VirtualKeyboard : MonoBehaviour
     public void OpenKeyboardFor(TMP_InputField input)
     {
         activeInputField = input;
+        
+        bool isNumPad = (input.contentType == TMP_InputField.ContentType.IntegerNumber || input.contentType == TMP_InputField.ContentType.DecimalNumber);
+        
+        // Choose layout based on input field type
+        string targetLayout = isNumPad ? numPadLayout : fullLayout;
+            
+        GenerateKeyboard(targetLayout, isNumPad);
+        
         gameObject.SetActive(true);
     }
 

@@ -400,7 +400,7 @@ MonoBehaviour:
   spikeYOffset: -0.212
   patterns:
   - patternName: 1
-    layout: 'BBBSBB  '
+    layout: 'BBBSSBB  '
     spawnWeight: 1
   - patternName: 2
     layout: 'SBBBBS '
@@ -415,17 +415,7 @@ MonoBehaviour:
     layout: 'BSS '
     spawnWeight: 1
   - patternName: 7
-    layout: "  SS\n  BB\n           \n             \nBBBBBS   "
-    spawnWeight: 1
-  - patternName: 8
-    layout: '   B
-
-      BB BS'
-    spawnWeight: 1
-  - patternName: 9
-    layout: '   B  B
-
-      BBBBSSB'
+    layout: 'BB   BB '
     spawnWeight: 1
   - patternName: 10
     layout: 'BBBSSBBSS '
@@ -472,8 +462,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: -75, y: 75}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: -50, y: 20}
+  m_SizeDelta: {x: 200, y: 150}
   m_Pivot: {x: 1, y: 0}
 --- !u!114 &394173784
 MonoBehaviour:
