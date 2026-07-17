@@ -720,7 +720,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraShake
   shakeDuration: 0.1
-  shakeMagnitude: 0.25
+  shakeMagnitude: 0.2
   dampingSpeed: 8
 --- !u!1 &619394800
 GameObject:
