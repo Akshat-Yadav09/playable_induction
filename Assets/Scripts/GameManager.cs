@@ -27,6 +27,12 @@ public class GameManager : MonoBehaviour
     private const string AttemptsPrefsKey = "Attempts";
     private const string TotalScorePrefsKey = "TotalScore";
 
+    void Awake()
+    {
+        // Lock to 60 FPS to save battery on mobile and keep physics consistent across all devices
+        Application.targetFrameRate = 60;
+    }
+
     void Start()
     {
         // Ensure the game is running at normal speed when the scene starts

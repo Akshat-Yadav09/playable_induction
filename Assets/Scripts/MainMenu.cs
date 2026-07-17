@@ -46,8 +46,12 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    private bool isLoggingIn = false;
+
     public void PlayGame()
     {   
+        if (isLoggingIn) return; // Prevent spamming the button
+
         if (errorText != null) errorText.text = ""; // Clear previous errors
 
         if(usernameInput.text == "" || regNoInput.text == "")
@@ -77,6 +81,7 @@ public class MainMenu : MonoBehaviour
         }
 
         Debug.Log("Logging in to server...");
+        isLoggingIn = true;
         
         // Disable play button here if needed
         APIManager.Instance.RegisterUser(usernameInput.text, regNoInput.text, (success, message) =>
@@ -91,6 +96,7 @@ public class MainMenu : MonoBehaviour
             {
                 Debug.LogWarning("Failed to login: " + message);
                 if (errorText != null) errorText.text = "Please enter a valid registration number";
+                isLoggingIn = false; // Re-enable the button if login failed
             }
         });
     }

@@ -415,7 +415,7 @@ MonoBehaviour:
     layout: 'BSS '
     spawnWeight: 1
   - patternName: 7
-    layout: "  SS\n  BB\n        \nBBBBBS   "
+    layout: "  SS\n  BB\n           \n             \nBBBBBS   "
     spawnWeight: 1
   - patternName: 8
     layout: '   B
@@ -1275,13 +1275,7 @@ MonoBehaviour:
   musicSource: {fileID: 0}
   sfxSource: {fileID: 0}
   gameplayMusic: {fileID: 8300000, guid: 3ccbeee664c57ca4b83329c3808c2c35, type: 3}
-  mainMenuMusic: {fileID: 0}
-  shopMusic: {fileID: 0}
   deathSound: {fileID: 8300000, guid: ba31bfd4508697740bd1c51176d578ab, type: 3}
-  hoverSound: {fileID: 8300000, guid: 11943a88e4751d640931d7be798bbe20, type: 3}
-  clickSound: {fileID: 8300000, guid: 8c296944b71509e4eb8b59d48c9fc8ec, type: 3}
-  purchaseSound: {fileID: 8300000, guid: 6625f4234020890449abf9bfb62d89d0, type: 3}
-  equipSound: {fileID: 8300000, guid: 80ef00111f7d25b4caf5b88f42b3f727, type: 3}
   musicVolume: 0.75
   sfxVolume: 1
 --- !u!1 &1284233676

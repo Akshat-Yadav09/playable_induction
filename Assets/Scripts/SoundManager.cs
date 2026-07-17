@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Central audio manager. Handles gameplay music and sound effects.
+/// Central audio manager. Optimized for WebGL to only handle Gameplay Music and Death Sound.
 /// Attach to any persistent GameObject in your scene (e.g. GameManager).
 /// </summary>
 public class SoundManager : MonoBehaviour
@@ -14,21 +14,11 @@ public class SoundManager : MonoBehaviour
     [Tooltip("AudioSource used for one-shot sound effects.")]
     public AudioSource sfxSource;
 
-    [Header("Music Clips")]
+    [Header("Audio Clips")]
     [Tooltip("The background music that plays during gameplay.")]
     public AudioClip gameplayMusic;
-    [Tooltip("The background music that plays on the Main Menu.")]
-    public AudioClip mainMenuMusic;
-    [Tooltip("The background music that plays in the Shop.")]
-    public AudioClip shopMusic;
     [Tooltip("The sound that plays when the player dies.")]
     public AudioClip deathSound;
-    
-    [Header("UI Sounds")]
-    public AudioClip hoverSound;
-    public AudioClip clickSound;
-    public AudioClip purchaseSound;
-    public AudioClip equipSound;
 
     [Header("Settings")]
     [Range(0f, 1f)] public float musicVolume = 0.75f;
@@ -61,11 +51,6 @@ public class SoundManager : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        // We now let the GameManager (or other scenes) decide when to play music!
-    }
-
     /// <summary>
     /// Starts (or restarts) the gameplay background music.
     /// </summary>
@@ -74,30 +59,6 @@ public class SoundManager : MonoBehaviour
         if (gameplayMusic == null) return;
 
         musicSource.clip = gameplayMusic;
-        musicSource.volume = musicVolume;
-        musicSource.Play();
-    }
-
-    /// <summary>
-    /// Starts the Main Menu background music.
-    /// </summary>
-    public void PlayMainMenuMusic()
-    {
-        if (mainMenuMusic == null) return;
-
-        musicSource.clip = mainMenuMusic;
-        musicSource.volume = musicVolume;
-        musicSource.Play();
-    }
-
-    /// <summary>
-    /// Starts the Shop background music.
-    /// </summary>
-    public void PlayShopMusic()
-    {
-        if (shopMusic == null) return;
-
-        musicSource.clip = shopMusic;
         musicSource.volume = musicVolume;
         musicSource.Play();
     }
@@ -140,30 +101,8 @@ public class SoundManager : MonoBehaviour
             sfxSource.PlayOneShot(deathSound, sfxVolume);
     }
     
-    // --- UI SOUND HELPERS ---
-    
-    public void PlayHoverSound()
-    {
-        if (hoverSound != null) sfxSource.PlayOneShot(hoverSound, sfxVolume * 0.5f); // Hover sounds should be quieter
-    }
-
-    public void PlayClickSound()
-    {
-        if (clickSound != null) sfxSource.PlayOneShot(clickSound, sfxVolume);
-    }
-
-    public void PlayPurchaseSound()
-    {
-        if (purchaseSound != null) sfxSource.PlayOneShot(purchaseSound, sfxVolume);
-    }
-
-    public void PlayEquipSound()
-    {
-        if (equipSound != null) sfxSource.PlayOneShot(equipSound, sfxVolume);
-    }
-
     /// <summary>
-    /// Play any one-shot sound effect clip.
+    /// Play any one-shot sound effect clip (fallback if needed).
     /// </summary>
     public void PlaySFX(AudioClip clip, float volumeScale = 1f)
     {
@@ -177,7 +116,7 @@ public class SoundManager : MonoBehaviour
     public void SetMusicVolume(float volume)
     {
         musicVolume = Mathf.Clamp01(volume);
-        musicSource.volume = musicVolume;
+        if (musicSource != null) musicSource.volume = musicVolume;
     }
 
     public void SetSFXVolume(float volume)
@@ -194,7 +133,7 @@ public class SoundManager : MonoBehaviour
     {
         isMuted = !isMuted;
         
-        musicSource.mute = isMuted;
-        sfxSource.mute = isMuted;
+        if (musicSource != null) musicSource.mute = isMuted;
+        if (sfxSource != null) sfxSource.mute = isMuted;
     }
 }

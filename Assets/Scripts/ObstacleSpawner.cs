@@ -188,13 +188,26 @@ public class ObstacleSpawner : MonoBehaviour
 
     private GameObject GeneratePatternObject(ObstaclePattern pattern)
     {
-        // Create an empty parent object
-        GameObject parentObj = new GameObject("Pattern_" + pattern.patternName);
-        
-        // Add ObstacleMover so the whole pattern moves together
-        ObstacleMover mover = parentObj.AddComponent<ObstacleMover>();
+        GameObject parentObj = null;
+
+        // Try to grab a Pattern Container from the pool
+        if (ObjectPool.Instance != null)
+        {
+            parentObj = ObjectPool.Instance.SpawnFromPool("PatternContainer", Vector3.zero, Quaternion.identity);
+        }
+
+        // Fallback if pool is missing or empty
+        if (parentObj == null)
+        {
+            parentObj = new GameObject("PatternContainer");
+            parentObj.AddComponent<ObstacleMover>();
+        }
+
+        parentObj.name = "Pattern_" + pattern.patternName;
         
         // Default values for the mover (will dynamically use DifficultyManager inside ObstacleMover)
+        ObstacleMover mover = parentObj.GetComponent<ObstacleMover>();
+        if (mover == null) mover = parentObj.AddComponent<ObstacleMover>();
         mover.speed = 8f; 
         mover.deadZone = -25f; // Slightly larger deadzone for big patterns
 
@@ -218,15 +231,24 @@ public class ObstacleSpawner : MonoBehaviour
                 
                 if (c == 'B' || c == 'b')
                 {
-                    if (blockPrefab != null) spawned = Instantiate(blockPrefab);
+                    if (ObjectPool.Instance != null)
+                        spawned = ObjectPool.Instance.SpawnFromPool("Block", Vector3.zero, Quaternion.identity);
+                    
+                    if (spawned == null && blockPrefab != null) 
+                        spawned = Instantiate(blockPrefab); // Fallback
+                    
+                    if (spawned != null) spawned.name = "Block";
                 }
                 else if (c == 'S' || c == 's')
                 {
-                    if (spikePrefab != null) 
-                    {
-                        spawned = Instantiate(spikePrefab);
-                        yOffset = spikeYOffset;
-                    }
+                    if (ObjectPool.Instance != null)
+                        spawned = ObjectPool.Instance.SpawnFromPool("Spike", Vector3.zero, Quaternion.identity);
+                    
+                    if (spawned == null && spikePrefab != null) 
+                        spawned = Instantiate(spikePrefab); // Fallback
+                        
+                    if (spawned != null) spawned.name = "Spike";
+                    yOffset = spikeYOffset;
                 }
                 
                 if (spawned != null)
