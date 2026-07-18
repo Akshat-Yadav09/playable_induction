@@ -21,12 +21,14 @@ public class MainMenu : MonoBehaviour
         // Load the saved username if the input field is assigned
         if (usernameInput != null)
         {
+            usernameInput.readOnly = true; // Prevents native iOS keyboard from popping up on WebGL
             usernameInput.text = PlayerPrefs.GetString(UsernamePrefsKey, "");
         }
         
         if (regNoInput != null)
         {
             regNoInput.contentType = TMP_InputField.ContentType.IntegerNumber;
+            regNoInput.readOnly = true; // Prevents native iOS keyboard from popping up on WebGL
             regNoInput.text = PlayerPrefs.GetString(RegNoPrefsKey, "");
         }
     }
